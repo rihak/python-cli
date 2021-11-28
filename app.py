@@ -1,7 +1,6 @@
 import os
 import argparse
 import logging
-import coloredlogs
 
 
 
@@ -70,7 +69,6 @@ class App:
 
     def loadLogger(self):
         ll = (logging.INFO, logging.DEBUG)[self.args['verbose']]
-        coloredlogs.install(level=ll)
         logging.basicConfig(level=ll)
 
     def run(self):
