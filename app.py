@@ -1,6 +1,7 @@
-import os
 import argparse
 import logging
+import os
+import pprint
 
 
 
@@ -10,11 +11,14 @@ class Route:
         self.cfg = cfg
         self.log = logging.getLogger('Route')
         self.path = os.path.dirname(os.path.abspath(__file__))
+        self.listdir = os.listdir(self.path)
+        self.log.debug(f'Script Path: "{self.path}"')
+        self.log.debug(f'List Dir: "{pprint.pformat(self.listdir)}"')
+        self.log.debug('Initialization complete')
 
 
     def execute(self):
         self.log = logging.getLogger('Execution')
-        self.log.info(f'Starting {App.NAME}...')
         # Logic goes here
 
 
@@ -68,14 +72,16 @@ class App:
         self.cfg =  cfg.cfg
 
     def loadLogger(self):
-        ll = (logging.INFO, logging.DEBUG)[self.args['verbose']]
-        logging.basicConfig(level=ll)
+        config = {
+            'format': '[%(asctime)s] %(levelname)s (%(name)s): %(message)s',
+            'level': (logging.INFO, logging.DEBUG)[self.args['verbose']],
+        }
+        logging.basicConfig(**config)
 
     def run(self):
-        if self.args['verbose']:
-            import pprint
-            print(f'\nRunning {self.NAME} with the following route:\n')
-            pprint.pprint({'args': self.args, 'cfg': self.cfg})
+        log = logging.getLogger('Run')
+        route = {'args': self.args, 'cfg': self.cfg}
+        log.debug(f'Running {self.NAME} with the following route:\n{pprint.pformat(route)}')
         Route(self.args, self.cfg).execute()
 
 
