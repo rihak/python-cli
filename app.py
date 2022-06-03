@@ -1,5 +1,4 @@
 import argparse
-import coloredlogs
 import configparser
 import json
 import logging
@@ -119,7 +118,6 @@ class App:
             'format': '[%(asctime)s] %(levelname)s (%(name)s): %(message)s',
             'level': (logging.INFO, logging.DEBUG)[self.args['verbose']],
         }
-        coloredlogs.install(level=config['level'])
         logging.basicConfig(**config)
 
     def run(self):
