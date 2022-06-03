@@ -8,6 +8,11 @@ import pprint
 
 
 
+CFG = {
+}
+
+
+
 class Route:
     def __init__(self, args, cfg):
         self.args = args
@@ -46,7 +51,8 @@ class App:
 
 
     # Default configuration file path relative to __file__'s
-    DEFAULT_CFG_FILE = 'cfg.py'
+    # Keep empty to use internal CFG object
+    DEFAULT_CFG_SOURCE = 'cfg.py'
 
 
     # List of dictionaries representing arguments by their name or flags
@@ -56,7 +62,7 @@ class App:
     ARGS = [
         {
             'name': ['-c', '--cfg'],
-            'options': {'default': DEFAULT_CFG_FILE, 'help': 'use specific cfg file', 'metavar': 'FILE', }
+            'options': {'default': DEFAULT_CFG_SOURCE, 'help': 'use specific cfg file', 'metavar': 'FILE', }
         },
         {
             'name': ['-v', '--verbose'],
@@ -80,14 +86,18 @@ class App:
             parser.add_argument(*arg['name'], **arg['options'])
         self.args = vars(parser.parse_args())
 
-    def loadConfiguration(self, cfg_file_path=DEFAULT_CFG_FILE):
+    def loadConfiguration(self, cfg_file_path=DEFAULT_CFG_SOURCE):
+        if cfg_file_path == '':
+            self.cfg = CFG
+            return
         if not os.path.exists(cfg_file_path) or not os.path.isfile(cfg_file_path):
             raise ValueError('Config not found at ' + cfg_file_path)
         _, extension = os.path.splitext(cfg_file_path)
         if extension == '.py':
             import cfg
             self.cfg =  cfg.cfg
-        elif extension == '.ini':
+            return
+        if extension == '.ini':
             parser = configparser.ConfigParser()
             parser.read(cfg_file_path)
             self.cfg = { section: dict(parser.items(section)) for section in parser.sections() }
@@ -97,11 +107,12 @@ class App:
                         self.cfg[section][key] = self.cfg[section][key] == 'true'
                     elif len(self.cfg[section][key].splitlines()) > 1:
                         self.cfg[section][key] = [item.strip() for item in self.cfg[section][key].splitlines() if len(item.strip())]
-        elif extension == '.json':
+            return
+        if extension == '.json':
             with open(cfg_file_path, 'r') as cfg_file:
                 self.cfg = json.load(cfg_file)
-        else:
-            raise NotImplementedError(f'{extension} configuration file is not supported')
+            return
+        raise NotImplementedError(f'{extension} configuration file is not supported')
 
     def loadLogger(self):
         config = {
